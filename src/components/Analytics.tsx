@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, getProfile } from "@/db";
+import { getProfile, getSessions } from "@/db";
 import {
   aggregateDailyMetrics,
   computeRollingMetrics,
@@ -45,7 +45,7 @@ function ChartCard({
 }
 
 export default function Analytics() {
-  const sessions = useLiveQuery(() => db.sessions.toArray()) ?? [];
+  const sessions = useLiveQuery(() => getSessions()) ?? [];
   const profile = useLiveQuery(() => getProfile());
 
   if (!profile || sessions.length < 2) {

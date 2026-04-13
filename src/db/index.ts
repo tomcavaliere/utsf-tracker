@@ -33,11 +33,27 @@ const DEFAULT_PROFILE: Omit<UserProfile, "id"> = {
   weeklyVolumeTarget: 10,
 };
 
+let storageWarningLogged = false;
+
+function logStorageWarning(error: unknown): void {
+  if (storageWarningLogged) return;
+  storageWarningLogged = true;
+  console.warn(
+    "IndexedDB indisponible: utilisation d'un mode dégradé (données non persistées).",
+    error,
+  );
+}
+
 export async function getProfile(): Promise<UserProfile> {
-  const existing = await db.profile.toCollection().first();
-  if (existing) return existing;
-  const id = await db.profile.add(DEFAULT_PROFILE as UserProfile);
-  return { ...DEFAULT_PROFILE, id } as UserProfile;
+  try {
+    const existing = await db.profile.toCollection().first();
+    if (existing) return existing;
+    const id = await db.profile.add(DEFAULT_PROFILE as UserProfile);
+    return { ...DEFAULT_PROFILE, id } as UserProfile;
+  } catch (error) {
+    logStorageWarning(error);
+    return { ...DEFAULT_PROFILE, id: undefined };
+  }
 }
 
 export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
@@ -85,7 +101,21 @@ export async function importData(json: string): Promise<void> {
 }
 
 export async function getPlanAdjustments(): Promise<PlanAdjustment[]> {
-  return db.planAdjustments.toArray();
+  try {
+    return await db.planAdjustments.toArray();
+  } catch (error) {
+    logStorageWarning(error);
+    return [];
+  }
+}
+
+export async function getSessions(): Promise<Session[]> {
+  try {
+    return await db.sessions.toArray();
+  } catch (error) {
+    logStorageWarning(error);
+    return [];
+  }
 }
 
 export async function upsertPlanAdjustment(

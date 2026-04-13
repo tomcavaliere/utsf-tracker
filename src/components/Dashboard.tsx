@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, getPlanAdjustments, getProfile } from "@/db";
+import { getPlanAdjustments, getProfile, getSessions } from "@/db";
 import { aggregateDailyMetrics, computeRollingMetrics } from "@/utils/metrics";
 import {
   generatePlanForProfile,
@@ -52,7 +52,7 @@ function StatCard({
 }
 
 export default function Dashboard() {
-  const sessions = useLiveQuery(() => db.sessions.toArray()) ?? [];
+  const sessions = useLiveQuery(() => getSessions()) ?? [];
   const profile = useLiveQuery(() => getProfile());
   const planAdjustments = useLiveQuery(() => getPlanAdjustments()) ?? [];
   const plan = profile ? generatePlanForProfile(profile, planAdjustments) : [];

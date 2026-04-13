@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/db";
+import { db, getSessions } from "@/db";
 import {
   type ActivityType,
   ACTIVITY_LABELS,
@@ -156,7 +156,7 @@ function normalizeForm(form: SessionForm): Omit<Session, "id"> {
 }
 
 export default function SessionLogger() {
-  const sessions = useLiveQuery(() => db.sessions.toArray()) ?? [];
+  const sessions = useLiveQuery(() => getSessions()) ?? [];
 
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
