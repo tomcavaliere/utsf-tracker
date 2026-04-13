@@ -95,6 +95,9 @@ export function generatePlan(startDate: string = "2026-04-13"): PlanWeek[] {
   const monday = new Date(race);
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
 
+  // Build a 25-week schedule ending on the race week:
+  // - find the Monday of race week
+  // - go back 24 full weeks so race week is included as week 25
   const planStart = new Date(monday);
   planStart.setDate(planStart.getDate() - (weeksToRace - 1) * 7);
 
