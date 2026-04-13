@@ -96,7 +96,7 @@ function aggregateByGranularity(
     existing.elevation += s.elevation ?? 0;
     existing.duration += s.duration;
     existing.sessionCount += 1;
-    existing.rpeTotal += s.rpe;
+    existing.rpeTotal += s.rpe ?? 0;
     grouped.set(key, existing);
   }
 
@@ -108,7 +108,7 @@ function aggregateByGranularity(
         granularity === "month"
           ? key
           : granularity === "week"
-            ? `Sem. ${key.slice(5)}`
+            ? `Sem. du ${key.slice(5)}`
             : key.slice(5),
       distance: Number(data.distance.toFixed(2)),
       elevation: Math.round(data.elevation),
