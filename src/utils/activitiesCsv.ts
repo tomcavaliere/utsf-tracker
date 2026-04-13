@@ -118,13 +118,18 @@ function toDurationMinutes(value: string | undefined): number | undefined {
 
   const hhmmss = v.match(/^(\d{1,3}):(\d{1,2})(?::(\d{1,2}))?$/);
   if (hhmmss) {
-    const a = Number(hhmmss[1]);
-    const b = Number(hhmmss[2]);
-    const c = Number(hhmmss[3] ?? 0);
-    if (Number.isFinite(a) && Number.isFinite(b) && Number.isFinite(c)) {
-      if (hhmmss[3] !== undefined)
-        return Math.round((a * 3600 + b * 60 + c) / 60);
-      return Math.round((a * 60 + b) / 60);
+    const hours = Number(hhmmss[1]);
+    const minutes = Number(hhmmss[2]);
+    const seconds = Number(hhmmss[3] ?? 0);
+    if (
+      Number.isFinite(hours) &&
+      Number.isFinite(minutes) &&
+      Number.isFinite(seconds)
+    ) {
+      if (hhmmss[3] !== undefined) {
+        return Math.round((hours * 3600 + minutes * 60 + seconds) / 60);
+      }
+      return Math.max(1, hours * 60 + minutes);
     }
   }
 
