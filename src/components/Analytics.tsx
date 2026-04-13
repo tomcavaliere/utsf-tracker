@@ -1,4 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { useMemo, useState } from "react";
 import { getProfile, getSessions } from "@/db";
 import {
   aggregateDailyMetrics,
@@ -7,6 +8,7 @@ import {
   computeSRPE,
   computeTSS,
 } from "@/utils/metrics";
+import type { Session } from "@/models/types";
 import {
   AreaChart,
   Area,
@@ -44,9 +46,82 @@ function ChartCard({
   );
 }
 
+type Granularity = "day" | "week" | "month";
+
+function startOfWeekISO(dateISO: string): string {
+  const date = new Date(dateISO);
+  const monday = new Date(date);
+  monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+  return monday.toISOString().slice(0, 10);
+}
+
+function aggregateByGranularity(
+  sessions: Session[],
+  granularity: Granularity,
+): Array<{
+  key: string;
+  label: string;
+  distance: number;
+  elevation: number;
+  duration: number;
+  sessionCount: number;
+  avgRpe: number;
+}> {
+  const grouped = new Map<
+    string,
+    {
+      distance: number;
+      elevation: number;
+      duration: number;
+      sessionCount: number;
+      rpeTotal: number;
+    }
+  >();
+
+  for (const s of sessions) {
+    const key =
+      granularity === "day"
+        ? s.date
+        : granularity === "week"
+          ? startOfWeekISO(s.date)
+          : s.date.slice(0, 7);
+    const existing = grouped.get(key) ?? {
+      distance: 0,
+      elevation: 0,
+      duration: 0,
+      sessionCount: 0,
+      rpeTotal: 0,
+    };
+    existing.distance += s.distance ?? 0;
+    existing.elevation += s.elevation ?? 0;
+    existing.duration += s.duration;
+    existing.sessionCount += 1;
+    existing.rpeTotal += s.rpe;
+    grouped.set(key, existing);
+  }
+
+  return Array.from(grouped.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, data]) => ({
+      key,
+      label:
+        granularity === "month"
+          ? key
+          : granularity === "week"
+            ? `Sem. ${key.slice(5)}`
+            : key.slice(5),
+      distance: Number(data.distance.toFixed(2)),
+      elevation: Math.round(data.elevation),
+      duration: Math.round(data.duration),
+      sessionCount: data.sessionCount,
+      avgRpe: Number((data.rpeTotal / data.sessionCount).toFixed(2)),
+    }));
+}
+
 export default function Analytics() {
   const sessions = useLiveQuery(() => getSessions()) ?? [];
   const profile = useLiveQuery(() => getProfile());
+  const [granularity, setGranularity] = useState<Granularity>("week");
 
   if (!profile || sessions.length < 2) {
     return (
@@ -88,6 +163,11 @@ export default function Analytics() {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([week, data]) => ({ week: week.slice(5), ...data }));
 
+  const volumeSeries = useMemo(
+    () => aggregateByGranularity(sessions, granularity),
+    [sessions, granularity],
+  );
+
   // RPE distribution
   const rpeDist = Array.from({ length: 10 }, (_, i) => ({
     rpe: i + 1,
@@ -96,7 +176,101 @@ export default function Analytics() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Analytics</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold">Analytics</h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-1 flex">
+          {(
+            [
+              { value: "day", label: "Jour" },
+              { value: "week", label: "Semaine" },
+              { value: "month", label: "Mois" },
+            ] as const
+          ).map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setGranularity(option.value)}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                granularity === option.value
+                  ? "bg-brand-500 text-black font-semibold"
+                  : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <ChartCard title="Distance (km)">
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart data={volumeSeries}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+            <Bar
+              dataKey="distance"
+              name="Distance (km)"
+              fill="#4ade80"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      <ChartCard title="Dénivelé (m D+)">
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart data={volumeSeries}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+            <Bar
+              dataKey="elevation"
+              name="Dénivelé (m D+)"
+              fill="#38bdf8"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      <ChartCard title="Durée (min)">
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart data={volumeSeries}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+            <Bar
+              dataKey="duration"
+              name="Durée (min)"
+              fill="#fbbf24"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      <ChartCard title="RPE moyen">
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={volumeSeries}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <YAxis domain={[0, 10]} tick={{ fontSize: 10, fill: "#6b7280" }} />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+            <Line
+              type="monotone"
+              dataKey="avgRpe"
+              name="RPE moyen"
+              stroke="#a78bfa"
+              strokeWidth={2}
+              dot={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
 
       {/* Fitness / Fatigue / Form */}
       <ChartCard title="Fitness (CTL) / Fatigue (ATL) / Form (TSB)">
