@@ -75,3 +75,11 @@ base: "/utsf-tracker/";
 
 Les données sont stockées localement dans le navigateur via IndexedDB (`UTSFTracker`).
 Pense à faire des exports réguliers depuis l'écran **Settings**.
+
+### Import `activities.csv`
+
+Si tu veux importer un export d'activités (ex: Strava), place le fichier dans:
+
+`public/activities.csv`
+
+Puis, dans **Settings**, clique sur **Importer activities.csv (repo)**.
