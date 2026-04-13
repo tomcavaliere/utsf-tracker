@@ -89,9 +89,9 @@ const PHASES: PhaseDefinition[] = [
 
 // ── Generate plan weeks ────────────────────────────────────────
 
-export function generatePlan(startDate: string = "2026-04-13"): PlanWeek[] {
+export function generatePlan(raceDate: string = "2026-10-02"): PlanWeek[] {
   const weeksToRace = 25;
-  const race = new Date(startDate);
+  const race = new Date(raceDate);
   const monday = new Date(race);
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
 
