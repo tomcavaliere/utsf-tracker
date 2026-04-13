@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { getProfile, updateProfile, exportData, importData } from "@/db";
+import { db, getProfile, updateProfile, exportData, importData } from "@/db";
 import type { UserProfile } from "@/models/types";
 import { Download, Upload, Save, CheckCircle } from "lucide-react";
+import { parseActivitiesCsv } from "@/utils/activitiesCsv";
 
 export default function Settings() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -89,6 +90,46 @@ export default function Settings() {
       }
     };
     input.click();
+  };
+
+  const handleImportActivitiesCsv = async () => {
+    setError(null);
+    setMessage(null);
+
+    const confirmed = window.confirm(
+      "Importer activities.csv remplacera toutes les séances actuelles. Continuer ?",
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}activities.csv`, {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        throw new Error(
+          "Fichier activities.csv introuvable (place-le dans /public/activities.csv).",
+        );
+      }
+
+      const csv = await response.text();
+      const sessions = parseActivitiesCsv(csv);
+      if (sessions.length === 0) {
+        throw new Error("Aucune activité valide trouvée dans activities.csv.");
+      }
+
+      await db.transaction("rw", db.sessions, async () => {
+        await db.sessions.clear();
+        await db.sessions.bulkAdd(sessions);
+      });
+
+      setMessage(`${sessions.length} activités importées depuis activities.csv.`);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? `Import CSV impossible: ${err.message}`
+          : "Import CSV impossible.",
+      );
+    }
   };
 
   if (!profile) return null;
@@ -275,6 +316,12 @@ export default function Settings() {
             className="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm font-medium transition-colors"
           >
             <Upload size={16} /> Importer JSON
+          </button>
+          <button
+            onClick={handleImportActivitiesCsv}
+            className="col-span-2 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm font-medium transition-colors"
+          >
+            <Upload size={16} /> Importer activities.csv (repo)
           </button>
         </div>
       </div>
