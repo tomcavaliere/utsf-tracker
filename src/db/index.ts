@@ -105,6 +105,7 @@ export async function deletePlanAdjustment(
 
 function isISODate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  // Date parsing guards against impossible calendar dates (e.g. 2026-02-30).
   const parsed = new Date(`${value}T00:00:00.000Z`);
   if (Number.isNaN(parsed.getTime())) return false;
   return parsed.toISOString().slice(0, 10) === value;
