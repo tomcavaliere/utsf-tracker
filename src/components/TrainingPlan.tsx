@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
-  db,
   deletePlanAdjustment,
   getPlanAdjustments,
   getProfile,
+  getSessions,
   upsertPlanAdjustment,
 } from "@/db";
 import { generatePlanForProfile, getCurrentWeek } from "@/utils/plan";
@@ -12,7 +12,7 @@ import { PHASE_LABELS, PHASE_COLORS, type Phase } from "@/models/types";
 import { ChevronRight, Battery } from "lucide-react";
 
 export default function TrainingPlan() {
-  const sessions = useLiveQuery(() => db.sessions.toArray()) ?? [];
+  const sessions = useLiveQuery(() => getSessions()) ?? [];
   const profile = useLiveQuery(() => getProfile());
   const adjustments = useLiveQuery(() => getPlanAdjustments()) ?? [];
   const plan = profile ? generatePlanForProfile(profile, adjustments) : [];
