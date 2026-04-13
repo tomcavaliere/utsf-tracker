@@ -108,14 +108,14 @@ function aggregateByGranularity(
         granularity === "month"
           ? key
           : granularity === "week"
-            ? `Sem. du ${key.slice(5)}`
+            ? `Sem. ${key}`
             : key.slice(5),
       distance: Number(data.distance.toFixed(2)),
       elevation: Math.round(data.elevation),
       duration: Math.round(data.duration),
       sessionCount: data.sessionCount,
       avgRpe:
-        data.sessionCount > 0 && data.rpeTotal > 0
+        data.sessionCount > 0
           ? Number((data.rpeTotal / data.sessionCount).toFixed(2))
           : 0,
     }));
