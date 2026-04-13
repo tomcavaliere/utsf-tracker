@@ -63,13 +63,21 @@ export default function Analytics() {
   const rolling = computeRollingMetrics(dailyMetrics);
 
   // Weekly aggregation for bar charts
-  const weeklyData = new Map<string, { trimp: number; srpe: number; tss: number; count: number }>();
+  const weeklyData = new Map<
+    string,
+    { trimp: number; srpe: number; tss: number; count: number }
+  >();
   for (const s of sessions) {
     const d = new Date(s.date);
     const monday = new Date(d);
     monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
     const weekKey = monday.toISOString().slice(0, 10);
-    const existing = weeklyData.get(weekKey) ?? { trimp: 0, srpe: 0, tss: 0, count: 0 };
+    const existing = weeklyData.get(weekKey) ?? {
+      trimp: 0,
+      srpe: 0,
+      tss: 0,
+      count: 0,
+    };
     existing.trimp += computeTRIMP(s, profile);
     existing.srpe += computeSRPE(s);
     existing.tss += computeTSS(s, profile);
@@ -136,13 +144,15 @@ export default function Analytics() {
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={weeklyArray}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-            <XAxis
-              dataKey="week"
-              tick={{ fontSize: 10, fill: "#6b7280" }}
-            />
+            <XAxis dataKey="week" tick={{ fontSize: 10, fill: "#6b7280" }} />
             <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} />
             <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-            <Bar dataKey="tss" name="TSS" fill="#4ade80" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="tss"
+              name="TSS"
+              fill="#4ade80"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -186,8 +196,8 @@ export default function Analytics() {
           </LineChart>
         </ResponsiveContainer>
         <p className="text-xs text-gray-600 mt-2">
-          Monotonie &gt; 2.0 = risque de surentraînement. Strain élevé + monotonie
-          élevée = zone rouge.
+          Monotonie &gt; 2.0 = risque de surentraînement. Strain élevé +
+          monotonie élevée = zone rouge.
         </p>
       </ChartCard>
 
@@ -196,10 +206,7 @@ export default function Analytics() {
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={weeklyArray}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-            <XAxis
-              dataKey="week"
-              tick={{ fontSize: 10, fill: "#6b7280" }}
-            />
+            <XAxis dataKey="week" tick={{ fontSize: 10, fill: "#6b7280" }} />
             <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} />
             <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
             <Bar
@@ -219,7 +226,12 @@ export default function Analytics() {
             <XAxis dataKey="rpe" tick={{ fontSize: 10, fill: "#6b7280" }} />
             <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} />
             <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-            <Bar dataKey="count" name="Séances" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="count"
+              name="Séances"
+              fill="#a78bfa"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
         <p className="text-xs text-gray-600 mt-2">
