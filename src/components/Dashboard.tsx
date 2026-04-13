@@ -1,10 +1,14 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, getProfile } from "@/db";
+import { db, getPlanAdjustments, getProfile } from "@/db";
 import {
   aggregateDailyMetrics,
   computeRollingMetrics,
 } from "@/utils/metrics";
-import { generatePlan, getCurrentWeek, daysUntilRace } from "@/utils/plan";
+import {
+  generatePlanForProfile,
+  getCurrentWeek,
+  daysUntilRace,
+} from "@/utils/plan";
 import {
   PHASE_LABELS,
   PHASE_COLORS,
@@ -51,9 +55,10 @@ function StatCard({
 export default function Dashboard() {
   const sessions = useLiveQuery(() => db.sessions.toArray()) ?? [];
   const profile = useLiveQuery(() => getProfile());
-  const plan = generatePlan();
+  const planAdjustments = useLiveQuery(() => getPlanAdjustments()) ?? [];
+  const plan = profile ? generatePlanForProfile(profile, planAdjustments) : [];
   const currentWeek = getCurrentWeek(plan);
-  const days = daysUntilRace();
+  const days = daysUntilRace(profile?.raceDate ?? "2026-10-02");
 
   // Weekly stats
   const now = new Date();
@@ -82,6 +87,21 @@ export default function Dashboard() {
 
   // Current form
   const latestRolling = rolling.length > 0 ? rolling[rolling.length - 1] : null;
+  const last7DaysISO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const sessionsLast7Days = sessions.filter((s) => s.date >= last7DaysISO).length;
+  const alerts = [
+    latestRolling && latestRolling.monotony > 2
+      ? "Monotonie > 2.0 : pense à varier la charge ou réduire l’intensité."
+      : null,
+    latestRolling && latestRolling.tsb < -25
+      ? "Forme (TSB) très basse : privilégie récupération active."
+      : null,
+    sessionsLast7Days === 0
+      ? "Aucune séance sur 7 jours : vérifie la continuité de suivi."
+      : null,
+  ].filter(Boolean) as string[];
 
   return (
     <div className="space-y-6">
@@ -242,6 +262,17 @@ export default function Dashboard() {
               {latestRolling.tsb.toFixed(0)}
             </div>
           </div>
+        </div>
+      )}
+
+      {alerts.length > 0 && (
+        <div className="bg-yellow-950/30 rounded-xl border border-yellow-700/50 p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-yellow-300">Alertes charge</h3>
+          <ul className="list-disc ml-5 text-sm text-yellow-100 space-y-1">
+            {alerts.map((alert) => (
+              <li key={alert}>{alert}</li>
+            ))}
+          </ul>
         </div>
       )}
 

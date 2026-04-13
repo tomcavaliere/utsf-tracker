@@ -1,4 +1,4 @@
-import type { Phase, PlanWeek } from "@/models/types";
+import type { Phase, PlanAdjustment, PlanWeek, UserProfile } from "@/models/types";
 
 // ── Plan phases definition ─────────────────────────────────────
 // Race date: 2026-10-02
@@ -85,6 +85,18 @@ const PHASES: PhaseDefinition[] = [
 // ── Generate plan weeks ────────────────────────────────────────
 
 export function generatePlan(startDate: string = "2026-04-13"): PlanWeek[] {
+  const weeksToRace = 25;
+  const race = new Date(startDate);
+  const monday = new Date(race);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+
+  const planStart = new Date(monday);
+  planStart.setDate(planStart.getDate() - (weeksToRace - 1) * 7);
+
+  return generatePlanFromStartDate(planStart.toISOString().slice(0, 10));
+}
+
+function generatePlanFromStartDate(startDate: string): PlanWeek[] {
   const weeks: PlanWeek[] = [];
   let currentDate = new Date(startDate);
   let weekNumber = 1;
@@ -115,6 +127,40 @@ export function generatePlan(startDate: string = "2026-04-13"): PlanWeek[] {
   return weeks;
 }
 
+export function generatePlanForProfile(
+  profile: UserProfile,
+  adjustments: PlanAdjustment[] = [],
+): PlanWeek[] {
+  const plan = generatePlan(profile.raceDate);
+  const levelFactor =
+    profile.trainingLevel === "beginner"
+      ? 0.85
+      : profile.trainingLevel === "advanced"
+        ? 1.15
+        : 1;
+  const targetFactor =
+    profile.weeklyVolumeTarget && profile.weeklyVolumeTarget > 0
+      ? profile.weeklyVolumeTarget / 10
+      : 1;
+  const volumeFactor = Math.min(1.6, Math.max(0.6, levelFactor * targetFactor));
+
+  const adjustmentMap = new Map(adjustments.map((a) => [a.weekStartDate, a]));
+  return plan.map((week) => {
+    const adjustment = adjustmentMap.get(week.startDate);
+    const scaledTargetVolume =
+      week.targetVolume !== undefined
+        ? Math.max(1, Math.round(week.targetVolume * volumeFactor * 10) / 10)
+        : undefined;
+
+    return {
+      ...week,
+      targetVolume: adjustment?.targetVolume ?? scaledTargetVolume,
+      notes: adjustment?.notes ?? week.notes,
+      isRecovery: adjustment?.isRecovery ?? week.isRecovery,
+    };
+  });
+}
+
 // ── Get current phase/week ─────────────────────────────────────
 
 export function getCurrentWeek(plan: PlanWeek[]): PlanWeek | undefined {
@@ -123,13 +169,13 @@ export function getCurrentWeek(plan: PlanWeek[]): PlanWeek | undefined {
 }
 
 export function getPhaseForDate(date: string): Phase {
-  const plan = generatePlan();
+  const plan = generatePlan("2026-10-02");
   const week = [...plan].reverse().find((w) => w.startDate <= date);
   return week?.phase ?? "pre_depart";
 }
 
-export function daysUntilRace(): number {
-  const race = new Date("2026-10-02");
+export function daysUntilRace(raceDate: string): number {
+  const race = new Date(raceDate);
   const now = new Date();
   return Math.ceil((race.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
