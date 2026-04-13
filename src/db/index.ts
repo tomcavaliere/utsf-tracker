@@ -123,10 +123,12 @@ function assertNumberInRange(
   max: number,
 ): number {
   if (typeof value !== "number" || Number.isNaN(value)) {
-    throw new Error(`Champ invalide: ${field}`);
+    throw new Error(`Champ invalide: ${field} doit être un nombre valide`);
   }
   if (value < min || value > max) {
-    throw new Error(`Valeur hors bornes pour ${field}`);
+    throw new Error(
+      `Valeur ${value} hors bornes pour ${field} (min: ${min}, max: ${max})`,
+    );
   }
   return value;
 }
