@@ -1,16 +1,12 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, getProfile } from "@/db";
+import { db, getPlanAdjustments, getProfile } from "@/db";
+import { aggregateDailyMetrics, computeRollingMetrics } from "@/utils/metrics";
 import {
-  aggregateDailyMetrics,
-  computeRollingMetrics,
-} from "@/utils/metrics";
-import { generatePlan, getCurrentWeek, daysUntilRace } from "@/utils/plan";
-import {
-  PHASE_LABELS,
-  PHASE_COLORS,
-  ACTIVITY_LABELS,
-  type Session,
-} from "@/models/types";
+  generatePlanForProfile,
+  getCurrentWeek,
+  daysUntilRace,
+} from "@/utils/plan";
+import { PHASE_LABELS, PHASE_COLORS, ACTIVITY_LABELS } from "@/models/types";
 import {
   AreaChart,
   Area,
@@ -19,7 +15,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Activity, Heart, Mountain, Timer, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  Activity,
+  Heart,
+  Mountain,
+  Timer,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 
 function StatCard({
   label,
@@ -51,9 +54,10 @@ function StatCard({
 export default function Dashboard() {
   const sessions = useLiveQuery(() => db.sessions.toArray()) ?? [];
   const profile = useLiveQuery(() => getProfile());
-  const plan = generatePlan();
+  const planAdjustments = useLiveQuery(() => getPlanAdjustments()) ?? [];
+  const plan = profile ? generatePlanForProfile(profile, planAdjustments) : [];
   const currentWeek = getCurrentWeek(plan);
-  const days = daysUntilRace();
+  const days = daysUntilRace(profile?.raceDate ?? "2026-10-02");
 
   // Weekly stats
   const now = new Date();
@@ -74,14 +78,29 @@ export default function Dashboard() {
       : 0;
 
   // Rolling metrics for chart
-  const dailyMetrics = profile
-    ? aggregateDailyMetrics(sessions, profile)
-    : [];
+  const dailyMetrics = profile ? aggregateDailyMetrics(sessions, profile) : [];
   const rolling = computeRollingMetrics(dailyMetrics);
   const last60 = rolling.slice(-60);
 
   // Current form
   const latestRolling = rolling.length > 0 ? rolling[rolling.length - 1] : null;
+  const last7DaysISO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const sessionsLast7Days = sessions.filter(
+    (s) => s.date >= last7DaysISO,
+  ).length;
+  const alerts = [
+    latestRolling && latestRolling.monotony > 2
+      ? "Monotonie > 2.0 : pense à varier la charge ou réduire l’intensité."
+      : null,
+    latestRolling && latestRolling.tsb < -25
+      ? "Forme (TSB) très basse : privilégie récupération active."
+      : null,
+    sessionsLast7Days === 0
+      ? "Aucune séance sur 7 jours : vérifie la continuité de suivi."
+      : null,
+  ].filter(Boolean) as string[];
 
   return (
     <div className="space-y-6">
@@ -117,8 +136,8 @@ export default function Dashboard() {
               <div className="flex justify-between text-xs text-gray-400 mb-1">
                 <span>Volume semaine</span>
                 <span>
-                  {(weekDuration / 60).toFixed(1)}h /{" "}
-                  {currentWeek.targetVolume}h
+                  {(weekDuration / 60).toFixed(1)}h / {currentWeek.targetVolume}
+                  h
                 </span>
               </div>
               <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
@@ -242,6 +261,19 @@ export default function Dashboard() {
               {latestRolling.tsb.toFixed(0)}
             </div>
           </div>
+        </div>
+      )}
+
+      {alerts.length > 0 && (
+        <div className="bg-yellow-950/30 rounded-xl border border-yellow-700/50 p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-yellow-300">
+            Alertes charge
+          </h3>
+          <ul className="list-disc ml-5 text-sm text-yellow-100 space-y-1">
+            {alerts.map((alert) => (
+              <li key={alert}>{alert}</li>
+            ))}
+          </ul>
         </div>
       )}
 

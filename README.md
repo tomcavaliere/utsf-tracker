@@ -9,6 +9,8 @@ Application web (React + TypeScript + Vite) pour suivre une préparation trail v
 - **Plan** : plan d'entraînement sur 25 semaines avec phases, semaines de récupération et volume cible.
 - **Analytics** : indicateurs de charge (TRIMP, sRPE, TSS), CTL/ATL/TSB, monotonie et strain.
 - **Settings** : profil athlète + export/import JSON des données.
+- **Gestion des séances** : édition, duplication, suppression et filtres de recherche.
+- **Ajustements plan** : surcharge manuelle d'une semaine (volume, notes, récupération).
 
 ## Stack technique
 
@@ -46,6 +48,15 @@ npm run build
 
 Le build est généré dans `dist/`.
 
+## Qualité
+
+```bash
+npm run typecheck
+npm run lint
+npm run format:check
+npm run test:run
+```
+
 ## Déploiement
 
 Le dépôt contient un workflow GitHub Actions (`.github/workflows/deploy.yml`) qui :
@@ -57,7 +68,7 @@ Le dépôt contient un workflow GitHub Actions (`.github/workflows/deploy.yml`) 
 La base Vite est configurée pour GitHub Pages :
 
 ```ts
-base: "/utsf-tracker/"
+base: "/utsf-tracker/";
 ```
 
 ## Données

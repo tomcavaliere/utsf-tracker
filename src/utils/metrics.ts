@@ -1,4 +1,9 @@
-import type { Session, UserProfile, DailyMetrics, RollingMetrics } from "@/models/types";
+import type {
+  Session,
+  UserProfile,
+  DailyMetrics,
+  RollingMetrics,
+} from "@/models/types";
 
 // ── TRIMP (Banister 1991) ──────────────────────────────────────
 // TRIMP = duration(min) × ΔHR_ratio × 0.64 × e^(1.92 × ΔHR_ratio)
@@ -138,12 +143,17 @@ export function computeRollingMetrics(
 
 // ── Summary helpers ────────────────────────────────────────────
 
-export function weeklyVolume(sessions: Session[], weekStartISO: string): number {
+export function weeklyVolume(
+  sessions: Session[],
+  weekStartISO: string,
+): number {
   const start = new Date(weekStartISO);
   const end = new Date(start);
   end.setDate(end.getDate() + 7);
 
   return sessions
-    .filter((s) => s.date >= weekStartISO && s.date < end.toISOString().slice(0, 10))
+    .filter(
+      (s) => s.date >= weekStartISO && s.date < end.toISOString().slice(0, 10),
+    )
     .reduce((sum, s) => sum + s.duration, 0);
 }

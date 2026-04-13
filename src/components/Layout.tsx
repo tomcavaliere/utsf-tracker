@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { useLiveQuery } from "dexie-react-hooks";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -6,6 +7,7 @@ import {
   CalendarDays,
   Settings,
 } from "lucide-react";
+import { getProfile } from "@/db";
 import { daysUntilRace } from "@/utils/plan";
 
 const NAV_ITEMS = [
@@ -17,7 +19,8 @@ const NAV_ITEMS = [
 ] as const;
 
 export default function Layout() {
-  const days = daysUntilRace();
+  const profile = useLiveQuery(() => getProfile());
+  const days = daysUntilRace(profile?.raceDate ?? "2026-10-02");
 
   return (
     <div className="flex flex-col min-h-screen">

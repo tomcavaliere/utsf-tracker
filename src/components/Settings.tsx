@@ -6,6 +6,8 @@ import { Download, Upload, Save, CheckCircle } from "lucide-react";
 export default function Settings() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [saved, setSaved] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getProfile().then(setProfile);
@@ -13,12 +15,39 @@ export default function Settings() {
 
   const handleSave = async () => {
     if (!profile) return;
+    setError(null);
+    setMessage(null);
+
+    if (profile.restingHR < 20 || profile.restingHR > 120) {
+      setError("FC repos invalide (20-120).");
+      return;
+    }
+    if (profile.maxHR < 100 || profile.maxHR > 240) {
+      setError("FC max invalide (100-240).");
+      return;
+    }
+    if (profile.lactateThresholdHR < 80 || profile.lactateThresholdHR > 230) {
+      setError("Seuil lactique invalide (80-230).");
+      return;
+    }
+    if (profile.maxHR <= profile.restingHR) {
+      setError("FC max doit être supérieure à la FC repos.");
+      return;
+    }
+    if (!profile.raceDate) {
+      setError("La date de course est obligatoire.");
+      return;
+    }
+
     await updateProfile(profile);
     setSaved(true);
+    setMessage("Profil sauvegardé.");
     setTimeout(() => setSaved(false), 2000);
   };
 
   const handleExport = async () => {
+    setError(null);
+    setMessage(null);
     const json = await exportData();
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -27,19 +56,37 @@ export default function Settings() {
     a.download = `utsf-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    setMessage("Export JSON généré.");
   };
 
   const handleImport = () => {
+    setError(null);
+    setMessage(null);
+    const confirmed = window.confirm(
+      "Importer un backup remplacera toutes les données actuelles. Continuer ?",
+    );
+    if (!confirmed) return;
+
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".json";
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
-      const text = await file.text();
-      await importData(text);
-      const p = await getProfile();
-      setProfile(p);
+      try {
+        const text = await file.text();
+        await importData(text);
+        const p = await getProfile();
+        setProfile(p);
+        setMessage("Import réussi.");
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? `Import impossible: ${err.message}`
+            : "Import impossible: fichier invalide.",
+        );
+      }
     };
     input.click();
   };
@@ -111,6 +158,44 @@ export default function Settings() {
                 setProfile({
                   ...profile,
                   weight: e.target.value ? Number(e.target.value) : undefined,
+                })
+              }
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">Niveau</label>
+            <select
+              value={profile.trainingLevel ?? "intermediate"}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  trainingLevel: e.target.value as UserProfile["trainingLevel"],
+                })
+              }
+              className={inputClass}
+            >
+              <option value="beginner">Débutant</option>
+              <option value="intermediate">Intermédiaire</option>
+              <option value="advanced">Avancé</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">
+              Volume cible hebdo (h)
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={40}
+              step={0.5}
+              value={profile.weeklyVolumeTarget ?? ""}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  weeklyVolumeTarget: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
                 })
               }
               className={inputClass}
@@ -193,6 +278,17 @@ export default function Settings() {
           </button>
         </div>
       </div>
+
+      {message && (
+        <p className="text-sm text-green-400 bg-green-950/20 border border-green-800/50 rounded-lg px-3 py-2">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className="text-sm text-red-400 bg-red-950/20 border border-red-800/50 rounded-lg px-3 py-2">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

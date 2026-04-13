@@ -38,6 +38,8 @@ export interface UserProfile {
   raceDate: string; // ISO date
   targetTime?: string; // e.g. "14:00"
   weight?: number; // kg
+  trainingLevel?: "beginner" | "intermediate" | "advanced";
+  weeklyVolumeTarget?: number; // hours
 }
 
 // ── Computed metrics ───────────────────────────────────────────
@@ -69,6 +71,14 @@ export interface PlanWeek {
   targetVolume?: number; // hours
   isRecovery: boolean;
   notes: string;
+}
+
+export interface PlanAdjustment {
+  id?: string; // week startDate ISO
+  weekStartDate: string;
+  targetVolume?: number;
+  notes?: string;
+  isRecovery?: boolean;
 }
 
 // ── Constants ──────────────────────────────────────────────────
