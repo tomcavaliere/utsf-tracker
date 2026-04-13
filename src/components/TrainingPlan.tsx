@@ -52,7 +52,10 @@ export default function TrainingPlan() {
   async function saveAdjustment() {
     if (!editingWeek) return;
     const target = editTarget.trim() ? Number(editTarget) : undefined;
-    if (target !== undefined && (!Number.isFinite(target) || target < 0 || target > 40)) {
+    if (
+      target !== undefined &&
+      (!Number.isFinite(target) || target < 0 || target > 40)
+    ) {
       return;
     }
     await upsertPlanAdjustment({
@@ -100,8 +103,7 @@ export default function TrainingPlan() {
               const actualMin = weekVolume(week.startDate);
               const actualH = actualMin / 60;
               const isPast =
-                week.startDate <
-                new Date().toISOString().slice(0, 10);
+                week.startDate < new Date().toISOString().slice(0, 10);
 
               return (
                 <div
@@ -163,7 +165,8 @@ export default function TrainingPlan() {
                   <p className="text-xs text-gray-400 mt-1">{week.notes}</p>
                   {week.targetVolume !== undefined && (
                     <div className="mt-2 text-xs text-gray-500">
-                      Prévu: {week.targetVolume}h · Réalisé: {actualH.toFixed(1)}h
+                      Prévu: {week.targetVolume}h · Réalisé:{" "}
+                      {actualH.toFixed(1)}h
                     </div>
                   )}
 
@@ -194,7 +197,9 @@ export default function TrainingPlan() {
                         </label>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1">Notes</label>
+                        <label className="text-xs text-gray-400 block mb-1">
+                          Notes
+                        </label>
                         <textarea
                           value={editNotes}
                           onChange={(e) => setEditNotes(e.target.value)}

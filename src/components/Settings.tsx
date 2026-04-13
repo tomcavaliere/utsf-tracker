@@ -164,9 +164,7 @@ export default function Settings() {
             />
           </div>
           <div>
-            <label className="text-xs text-gray-400 mb-1 block">
-              Niveau
-            </label>
+            <label className="text-xs text-gray-400 mb-1 block">Niveau</label>
             <select
               value={profile.trainingLevel ?? "intermediate"}
               onChange={(e) =>

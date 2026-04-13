@@ -103,16 +103,26 @@ function toForm(session: Session): SessionForm {
 
 function validateForm(form: SessionForm): string | null {
   if (!form.date) return "La date est obligatoire.";
-  if (!Number.isFinite(form.duration) || form.duration < 1 || form.duration > 1440) {
+  if (
+    !Number.isFinite(form.duration) ||
+    form.duration < 1 ||
+    form.duration > 1440
+  ) {
     return "La durée doit être entre 1 et 1440 minutes.";
   }
   if (!Number.isFinite(form.rpe) || form.rpe < 1 || form.rpe > 10) {
     return "Le RPE doit être entre 1 et 10.";
   }
-  if (form.distance !== undefined && (form.distance < 0 || form.distance > 1000)) {
+  if (
+    form.distance !== undefined &&
+    (form.distance < 0 || form.distance > 1000)
+  ) {
     return "La distance doit être entre 0 et 1000 km.";
   }
-  if (form.elevation !== undefined && (form.elevation < 0 || form.elevation > 20000)) {
+  if (
+    form.elevation !== undefined &&
+    (form.elevation < 0 || form.elevation > 20000)
+  ) {
     return "Le dénivelé doit être entre 0 et 20000 m.";
   }
   if (form.avgHR !== undefined && (form.avgHR < 30 || form.avgHR > 240)) {
@@ -195,7 +205,8 @@ export default function SessionLogger() {
       .filter((s) => (dateFrom ? s.date >= dateFrom : true))
       .filter((s) => (dateTo ? s.date <= dateTo : true))
       .filter((s) => {
-        const text = `${ACTIVITY_LABELS[s.type]} ${s.notes ?? ""}`.toLowerCase();
+        const text =
+          `${ACTIVITY_LABELS[s.type]} ${s.notes ?? ""}`.toLowerCase();
         return query.trim() ? text.includes(query.trim().toLowerCase()) : true;
       });
   }, [sessions, filterType, dateFrom, dateTo, query]);
@@ -270,7 +281,9 @@ export default function SessionLogger() {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Durée (min) *</label>
+              <label className="text-xs text-gray-400 mb-1 block">
+                Durée (min) *
+              </label>
               <input
                 type="number"
                 value={form.duration}
@@ -282,7 +295,9 @@ export default function SessionLogger() {
               />
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Distance (km)</label>
+              <label className="text-xs text-gray-400 mb-1 block">
+                Distance (km)
+              </label>
               <input
                 type="number"
                 min={0}
@@ -290,7 +305,10 @@ export default function SessionLogger() {
                 step="0.1"
                 value={form.distance ?? ""}
                 onChange={(e) =>
-                  update("distance", e.target.value ? Number(e.target.value) : undefined)
+                  update(
+                    "distance",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
                 }
                 className={inputClass}
               />
@@ -303,7 +321,10 @@ export default function SessionLogger() {
                 max={20000}
                 value={form.elevation ?? ""}
                 onChange={(e) =>
-                  update("elevation", e.target.value ? Number(e.target.value) : undefined)
+                  update(
+                    "elevation",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
                 }
                 className={inputClass}
               />
@@ -312,27 +333,37 @@ export default function SessionLogger() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">FC moy (bpm)</label>
+              <label className="text-xs text-gray-400 mb-1 block">
+                FC moy (bpm)
+              </label>
               <input
                 type="number"
                 min={30}
                 max={240}
                 value={form.avgHR ?? ""}
                 onChange={(e) =>
-                  update("avgHR", e.target.value ? Number(e.target.value) : undefined)
+                  update(
+                    "avgHR",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
                 }
                 className={inputClass}
               />
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">FC max (bpm)</label>
+              <label className="text-xs text-gray-400 mb-1 block">
+                FC max (bpm)
+              </label>
               <input
                 type="number"
                 min={30}
                 max={240}
                 value={form.maxHR ?? ""}
                 onChange={(e) =>
-                  update("maxHR", e.target.value ? Number(e.target.value) : undefined)
+                  update(
+                    "maxHR",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
                 }
                 className={inputClass}
               />
@@ -378,11 +409,16 @@ export default function SessionLogger() {
       </div>
 
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-300">Historique des séances</h3>
+        <h3 className="text-sm font-semibold text-gray-300">
+          Historique des séances
+        </h3>
 
         <div className="grid md:grid-cols-4 gap-3">
           <div className="md:col-span-2 relative">
-            <Search size={14} className="absolute left-3 top-2.5 text-gray-500" />
+            <Search
+              size={14}
+              className="absolute left-3 top-2.5 text-gray-500"
+            />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -392,7 +428,9 @@ export default function SessionLogger() {
           </div>
           <select
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value as "all" | ActivityType)}
+            onChange={(e) =>
+              setFilterType(e.target.value as "all" | ActivityType)
+            }
             className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm"
           >
             <option value="all">Tous les types</option>
@@ -423,7 +461,10 @@ export default function SessionLogger() {
             <p className="text-sm text-gray-500">Aucune séance trouvée.</p>
           ) : (
             filteredSessions.map((s) => (
-              <div key={s.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950">
+              <div
+                key={s.id}
+                className="p-3 rounded-lg border border-gray-800 bg-gray-950"
+              >
                 {editingId === s.id && editForm ? (
                   <div className="space-y-3">
                     <div className="grid md:grid-cols-4 gap-2">
@@ -435,7 +476,9 @@ export default function SessionLogger() {
                       />
                       <select
                         value={editForm.type}
-                        onChange={(e) => updateEdit("type", e.target.value as ActivityType)}
+                        onChange={(e) =>
+                          updateEdit("type", e.target.value as ActivityType)
+                        }
                         className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm"
                       >
                         {ACTIVITY_TYPES.map((t) => (
@@ -449,7 +492,9 @@ export default function SessionLogger() {
                         value={editForm.duration}
                         min={1}
                         max={1440}
-                        onChange={(e) => updateEdit("duration", Number(e.target.value))}
+                        onChange={(e) =>
+                          updateEdit("duration", Number(e.target.value))
+                        }
                         className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm"
                       />
                       <input
@@ -457,7 +502,9 @@ export default function SessionLogger() {
                         value={editForm.rpe}
                         min={1}
                         max={10}
-                        onChange={(e) => updateEdit("rpe", Number(e.target.value))}
+                        onChange={(e) =>
+                          updateEdit("rpe", Number(e.target.value))
+                        }
                         className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm"
                       />
                     </div>
@@ -496,7 +543,9 @@ export default function SessionLogger() {
                         {s.distance ? ` · ${s.distance} km` : ""}
                         {s.elevation ? ` · ${s.elevation} m D+` : ""}
                       </div>
-                      {s.notes && <p className="text-xs text-gray-400 mt-1">{s.notes}</p>}
+                      {s.notes && (
+                        <p className="text-xs text-gray-400 mt-1">{s.notes}</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <button

@@ -1,4 +1,9 @@
-import type { Phase, PlanAdjustment, PlanWeek, UserProfile } from "@/models/types";
+import type {
+  Phase,
+  PlanAdjustment,
+  PlanWeek,
+  UserProfile,
+} from "@/models/types";
 
 // ── Plan phases definition ─────────────────────────────────────
 // Race date: 2026-10-02
@@ -98,7 +103,7 @@ export function generatePlan(startDate: string = "2026-04-13"): PlanWeek[] {
 
 function generatePlanFromStartDate(startDate: string): PlanWeek[] {
   const weeks: PlanWeek[] = [];
-  let currentDate = new Date(startDate);
+  const currentDate = new Date(startDate);
   let weekNumber = 1;
 
   for (const phase of PHASES) {

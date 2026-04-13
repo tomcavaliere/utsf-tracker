@@ -40,9 +40,7 @@ export async function getProfile(): Promise<UserProfile> {
   return { ...DEFAULT_PROFILE, id } as UserProfile;
 }
 
-export async function updateProfile(
-  data: Partial<UserProfile>,
-): Promise<void> {
+export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
   const profile = await getProfile();
   await db.profile.update(profile.id!, data);
 }
@@ -54,7 +52,12 @@ export async function exportData(): Promise<string> {
   const profile = await getProfile();
   const planAdjustments = await db.planAdjustments.toArray();
   return JSON.stringify(
-    { sessions, profile, planAdjustments, exportedAt: new Date().toISOString() },
+    {
+      sessions,
+      profile,
+      planAdjustments,
+      exportedAt: new Date().toISOString(),
+    },
     null,
     2,
   );
@@ -94,7 +97,9 @@ export async function upsertPlanAdjustment(
   });
 }
 
-export async function deletePlanAdjustment(weekStartDate: string): Promise<void> {
+export async function deletePlanAdjustment(
+  weekStartDate: string,
+): Promise<void> {
   await db.planAdjustments.delete(weekStartDate);
 }
 
@@ -160,7 +165,8 @@ function validateImportData(data: unknown): {
       min: number,
       max: number,
     ): number | undefined => {
-      if (value === null || value === undefined || value === "") return undefined;
+      if (value === null || value === undefined || value === "")
+        return undefined;
       return assertNumberInRange(value, field, min, max);
     };
 
@@ -180,7 +186,10 @@ function validateImportData(data: unknown): {
   });
 
   const profileRaw = obj.profile as Record<string, unknown>;
-  if (typeof profileRaw.raceDate !== "string" || !isISODate(profileRaw.raceDate)) {
+  if (
+    typeof profileRaw.raceDate !== "string" ||
+    !isISODate(profileRaw.raceDate)
+  ) {
     throw new Error("Profil: date course invalide");
   }
   const profile: UserProfile = {
@@ -195,7 +204,9 @@ function validateImportData(data: unknown): {
     ),
     raceDate: profileRaw.raceDate,
     targetTime:
-      typeof profileRaw.targetTime === "string" ? profileRaw.targetTime : undefined,
+      typeof profileRaw.targetTime === "string"
+        ? profileRaw.targetTime
+        : undefined,
     weight:
       typeof profileRaw.weight === "number" && profileRaw.weight > 0
         ? profileRaw.weight
@@ -229,7 +240,8 @@ function validateImportData(data: unknown): {
         typeof item.targetVolume === "number" && item.targetVolume >= 0
           ? item.targetVolume
           : undefined,
-      notes: typeof item.notes === "string" ? item.notes.slice(0, 300) : undefined,
+      notes:
+        typeof item.notes === "string" ? item.notes.slice(0, 300) : undefined,
       isRecovery:
         typeof item.isRecovery === "boolean" ? item.isRecovery : undefined,
     }));

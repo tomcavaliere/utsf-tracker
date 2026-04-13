@@ -68,7 +68,7 @@ Le dépôt contient un workflow GitHub Actions (`.github/workflows/deploy.yml`) 
 La base Vite est configurée pour GitHub Pages :
 
 ```ts
-base: "/utsf-tracker/"
+base: "/utsf-tracker/";
 ```
 
 ## Données

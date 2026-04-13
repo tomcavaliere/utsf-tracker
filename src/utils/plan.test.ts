@@ -17,7 +17,9 @@ describe("plan generation", () => {
     const plan = generatePlanForProfile(profile);
     expect(plan).toHaveLength(25);
     expect(plan[0]?.weekNumber).toBe(1);
-    expect(plan.at(-1)?.startDate <= profile.raceDate).toBe(true);
+    const lastWeek = plan[plan.length - 1];
+    expect(lastWeek).toBeDefined();
+    expect((lastWeek?.startDate ?? "") <= profile.raceDate).toBe(true);
   });
 
   it("applies manual week adjustments", () => {

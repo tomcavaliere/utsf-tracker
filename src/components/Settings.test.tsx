@@ -13,16 +13,18 @@ const profile: UserProfile = {
   weeklyVolumeTarget: 10,
 };
 
-const mockGetProfile = vi.fn(async () => profile);
-const mockUpdateProfile = vi.fn(async () => undefined);
-const mockExportData = vi.fn(async () => "{}");
-const mockImportData = vi.fn(async () => undefined);
+const dbMocks = vi.hoisted(() => ({
+  mockGetProfile: vi.fn(async () => profile),
+  mockUpdateProfile: vi.fn(async () => undefined),
+  mockExportData: vi.fn(async () => "{}"),
+  mockImportData: vi.fn(async () => undefined),
+}));
 
 vi.mock("@/db", () => ({
-  getProfile: mockGetProfile,
-  updateProfile: mockUpdateProfile,
-  exportData: mockExportData,
-  importData: mockImportData,
+  getProfile: dbMocks.mockGetProfile,
+  updateProfile: dbMocks.mockUpdateProfile,
+  exportData: dbMocks.mockExportData,
+  importData: dbMocks.mockImportData,
 }));
 
 describe("Settings", () => {
@@ -37,8 +39,10 @@ describe("Settings", () => {
     fireEvent.change(restingHrInput, { target: { value: "10" } });
     fireEvent.click(screen.getByText("Sauvegarder"));
 
-    expect(await screen.findByText("FC repos invalide (20-120).")).toBeVisible();
-    expect(mockUpdateProfile).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("FC repos invalide (20-120)."),
+    ).toBeVisible();
+    expect(dbMocks.mockUpdateProfile).not.toHaveBeenCalled();
   });
 
   it("saves profile when valid", async () => {
@@ -46,6 +50,8 @@ describe("Settings", () => {
     await screen.findByDisplayValue("48");
 
     fireEvent.click(screen.getByText("Sauvegarder"));
-    await waitFor(() => expect(mockUpdateProfile).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(dbMocks.mockUpdateProfile).toHaveBeenCalledTimes(1),
+    );
   });
 });

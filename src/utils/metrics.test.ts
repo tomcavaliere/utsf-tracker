@@ -35,7 +35,10 @@ describe("metrics helpers", () => {
 
   it("computes TSS from HR and fallback RPE", () => {
     const tssFromHR = computeTSS(baseSession, profile);
-    const tssFromRpe = computeTSS({ ...baseSession, avgHR: undefined }, profile);
+    const tssFromRpe = computeTSS(
+      { ...baseSession, avgHR: undefined },
+      profile,
+    );
     expect(tssFromHR).toBeGreaterThan(0);
     expect(tssFromRpe).toBeGreaterThan(0);
   });
@@ -48,10 +51,11 @@ describe("metrics helpers", () => {
     ];
     const daily = aggregateDailyMetrics(sessions, profile);
     const rolling = computeRollingMetrics(daily);
+    const latest = rolling[rolling.length - 1];
     expect(daily.length).toBe(3);
     expect(rolling.length).toBeGreaterThanOrEqual(4);
-    expect(rolling.at(-1)?.atl).toBeDefined();
-    expect(rolling.at(-1)?.ctl).toBeDefined();
-    expect(rolling.at(-1)?.tsb).toBeDefined();
+    expect(latest?.atl).toBeDefined();
+    expect(latest?.ctl).toBeDefined();
+    expect(latest?.tsb).toBeDefined();
   });
 });
