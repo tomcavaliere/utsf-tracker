@@ -48,11 +48,18 @@ function ChartCard({
 
 type Granularity = "day" | "week" | "month";
 
+function toLocalISODate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function startOfWeekISO(dateISO: string): string {
   const date = new Date(dateISO);
   const monday = new Date(date);
   monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
-  return monday.toISOString().slice(0, 10);
+  return toLocalISODate(monday);
 }
 
 function aggregateByGranularity(
@@ -75,6 +82,7 @@ function aggregateByGranularity(
       duration: number;
       sessionCount: number;
       rpeTotal: number;
+      rpeCount: number;
     }
   >();
 
@@ -91,12 +99,16 @@ function aggregateByGranularity(
       duration: 0,
       sessionCount: 0,
       rpeTotal: 0,
+      rpeCount: 0,
     };
     existing.distance += s.distance ?? 0;
     existing.elevation += s.elevation ?? 0;
     existing.duration += s.duration;
     existing.sessionCount += 1;
-    existing.rpeTotal += s.rpe ?? 0;
+    if (typeof s.rpe === "number") {
+      existing.rpeTotal += s.rpe;
+      existing.rpeCount += 1;
+    }
     grouped.set(key, existing);
   }
 
@@ -115,8 +127,8 @@ function aggregateByGranularity(
       duration: Math.round(data.duration),
       sessionCount: data.sessionCount,
       avgRpe:
-        data.sessionCount > 0
-          ? Number((data.rpeTotal / data.sessionCount).toFixed(2))
+        data.rpeCount > 0
+          ? Number((data.rpeTotal / data.rpeCount).toFixed(2))
           : 0,
     }));
 }
