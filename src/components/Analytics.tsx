@@ -48,18 +48,18 @@ function ChartCard({
 
 type Granularity = "day" | "week" | "month";
 
-function toLocalISODate(date: Date): string {
+function toYYYYMMDD(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
-function startOfWeekISO(dateISO: string): string {
+function getWeekStartDate(dateISO: string): string {
   const date = new Date(dateISO);
   const monday = new Date(date);
   monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
-  return toLocalISODate(monday);
+  return toYYYYMMDD(monday);
 }
 
 function aggregateByGranularity(
@@ -91,7 +91,7 @@ function aggregateByGranularity(
       granularity === "day"
         ? s.date
         : granularity === "week"
-          ? startOfWeekISO(s.date)
+          ? getWeekStartDate(s.date)
           : s.date.slice(0, 7);
     const existing = grouped.get(key) ?? {
       distance: 0,
