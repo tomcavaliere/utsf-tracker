@@ -41,12 +41,14 @@ function normalizeHeader(value: string): string {
 function detectDelimiter(text: string): string {
   const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
   const candidates = [",", ";", "\t"];
-  return candidates
-    .map((delimiter) => ({
-      delimiter,
-      count: firstLine.split(delimiter).length,
-    }))
-    .sort((a, b) => b.count - a.count)[0]?.delimiter ?? ",";
+  return (
+    candidates
+      .map((delimiter) => ({
+        delimiter,
+        count: firstLine.split(delimiter).length,
+      }))
+      .sort((a, b) => b.count - a.count)[0]?.delimiter ?? ","
+  );
 }
 
 function parseCsv(text: string, delimiter: string): string[][] {
@@ -102,7 +104,7 @@ function toNumber(value: string | undefined): number | undefined {
     compact.includes(",") && !compact.includes(".")
       ? compact.replace(/,/g, ".")
       : compact.replace(/,/g, "");
-  const cleaned = normalized.replace(/[^0-9.\-]/g, "");
+  const cleaned = normalized.replace(/[^0-9.-]/g, "");
   if (!cleaned) return undefined;
 
   const n = Number(cleaned);
@@ -120,7 +122,8 @@ function toDurationMinutes(value: string | undefined): number | undefined {
     const b = Number(hhmmss[2]);
     const c = Number(hhmmss[3] ?? 0);
     if (Number.isFinite(a) && Number.isFinite(b) && Number.isFinite(c)) {
-      if (hhmmss[3] !== undefined) return Math.round((a * 3600 + b * 60 + c) / 60);
+      if (hhmmss[3] !== undefined)
+        return Math.round((a * 3600 + b * 60 + c) / 60);
       return Math.round((a * 60 + b) / 60);
     }
   }
@@ -241,7 +244,8 @@ export function parseActivitiesCsv(text: string): SessionInput[] {
       type,
       duration,
       distance,
-      elevation: elevationRaw !== undefined ? Math.round(elevationRaw) : undefined,
+      elevation:
+        elevationRaw !== undefined ? Math.round(elevationRaw) : undefined,
       avgHR: avgHR !== undefined ? Math.round(avgHR) : undefined,
       maxHR: maxHR !== undefined ? Math.round(maxHR) : undefined,
       rpe: defaultRpe(type),

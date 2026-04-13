@@ -102,7 +102,12 @@ export default function Settings() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`${import.meta.env.BASE_URL}activities.csv`, {
+      const csvUrl = new URL(
+        "activities.csv",
+        `${window.location.origin}${window.location.pathname}`,
+      ).toString();
+
+      const response = await fetch(csvUrl, {
         cache: "no-store",
       });
       if (!response.ok) {
@@ -122,7 +127,9 @@ export default function Settings() {
         await db.sessions.bulkAdd(sessions);
       });
 
-      setMessage(`${sessions.length} activités importées depuis activities.csv.`);
+      setMessage(
+        `${sessions.length} activités importées depuis activities.csv.`,
+      );
     } catch (err) {
       setError(
         err instanceof Error
