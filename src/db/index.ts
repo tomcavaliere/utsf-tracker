@@ -52,7 +52,7 @@ export async function getProfile(): Promise<UserProfile> {
     return { ...DEFAULT_PROFILE, id } as UserProfile;
   } catch (error) {
     logStorageWarning(error);
-    return { ...DEFAULT_PROFILE };
+    return { ...DEFAULT_PROFILE, id: undefined };
   }
 }
 
