@@ -114,7 +114,10 @@ function aggregateByGranularity(
       elevation: Math.round(data.elevation),
       duration: Math.round(data.duration),
       sessionCount: data.sessionCount,
-      avgRpe: Number((data.rpeTotal / data.sessionCount).toFixed(2)),
+      avgRpe:
+        data.sessionCount > 0 && data.rpeTotal > 0
+          ? Number((data.rpeTotal / data.sessionCount).toFixed(2))
+          : 0,
     }));
 }
 
